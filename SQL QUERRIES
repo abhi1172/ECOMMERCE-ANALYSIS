@@ -1,0 +1,90 @@
+create database e_commerce
+use e_commerce
+drop table ecommerce
+create table ecommerce
+(
+Email varchar(60),
+Address varchar(80),
+Avatar varchar(50),
+Avg_Session_Length decimal(10,8),
+Time_on_App decimal(10,8),	
+Time_on_Website decimal(10,8),
+Length_of_Membership decimal(10,9),
+Yearly_Amount_Spent decimal(10,7)
+);	
+
+SET SESSION sql_mode = ''
+LOAD DATA  INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/Ecommerce Customers.csv'
+INTO TABLE ecommerce
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES
+
+
+select * from ecommerce
+------------extracting name of customer from email----------------------------------------------
+select Email , left(Email,position('@' in Email)-1) as customer_name from ecommerce
+select count(*) from ecommerce
+
+
+alter table ecommerce
+add column customer_name varchar(30) after Email
+
+update ecommerce
+set customer_name = left(Email,position('@' in Email)-1)
+
+select * from ecommerce
+
+-----------------------------extraction of state code from data-------------------------------------------------
+
+SELECT Address,length(Address),state_code,
+case
+when length(Address)> 43 then REGEXP_SUBSTR(Address, '[A-Z]{2}(?= [0-9]+\-*[0-9]+)',32,-1)
+when length(Address)<=43 then REGEXP_SUBSTR(Address, '[A-Z]{2}(?= [0-9]+\-*[0-9]+)',15,-1)
+end as  state_code_new
+FROM
+ecommerce
+
+alter table ecommerce
+add column state_code_new varchar(10) after Address
+
+update ecommerce
+set state_code_new = case
+when length(Address)> 43 then REGEXP_SUBSTR(Address, '[A-Z]{2}(?= [0-9]+\-*[0-9]+)',32,-1)
+when length(Address)<=43 then REGEXP_SUBSTR(Address, '[A-Z]{2}(?= [0-9]+\-*[0-9]+)',15,-1)
+end select * from ecommerce
+select * from ecommerce where state_code_new ="PW"
+alter table ecommerce
+drop column state_code
+ALTER TABLE ecommerce
+ ADD customer_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+ ADD PRIMARY KEY (customer_id)
+ 
+ select state_code_new, count(*) as no_of_customers from ecommerce
+ group by state_code_new
+ order by no_of_customers desc
+ 
+
+
+
+select * from ecommerce
+
+
+SELECT state_code_new, AVG(Avg_Session_Length),
+AVG(Time_on_App), AVG(Length_of_Membership),AVG(Yearly_Amount_Spent)
+FROM ECOMMERCE
+GROUP BY state_code_new
+ORDER BY AVG(Yearly_Amount_Spent) DESC-----UT
+
+
+
+SELECT state_code_new, AVG(Avg_Session_Length),
+AVG(Time_on_App), AVG(Length_of_Membership),AVG(Yearly_Amount_Spent)
+FROM ECOMMERCE
+GROUP BY state_code_new
+ORDER BY AVG(Length_of_Membership) DESC-----IN
+
+SELECT Avatar, COUNT(*) FROM ECOMMERCE
+GROUP BY Avatar
+SELECT * FROM ECOMMERCE
